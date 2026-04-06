@@ -27,8 +27,11 @@ export class GameScene extends Phaser.Scene {
     d: Phaser.Input.Keyboard.Key;
     p: Phaser.Input.Keyboard.Key;
   };
-  private readonly moveCooldownMs = 100;
+  private readonly moveCooldownMs = 90;
+  private readonly directionSwitchBypassMs = 28;
   private lastMoveAtMs = 0;
+  private lastMoveDirection: 0 | 1 | 2 | 3 | null = null;
+  private trailIndices: number[] = [];
   private queuedTouchDirection: 0 | 1 | 2 | 3 | null = null;
   private pointerDownAt: Phaser.Math.Vector2 | null = null;
   private readonly minSwipeDistancePx = 24;
@@ -69,11 +72,6 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    if (time - this.lastMoveAtMs < this.moveCooldownMs) {
-      return;
-    }
-
-    this.lastMoveAtMs = time;
     this.tryMove(direction);
   }
 
@@ -95,14 +93,15 @@ export class GameScene extends Phaser.Scene {
       shortcutCountModifier: 0.18
     });
 
-    const layout = createBoardLayout(this, this.maze, 0.84);
+    const layout = createBoardLayout(this, this.maze, 0.8);
     this.boardRenderer = new BoardRenderer(this, this.maze, layout);
     this.boardRenderer.drawBoardChrome();
     this.boardRenderer.drawBase();
     this.boardRenderer.drawGoal();
 
     this.playerIndex = this.maze.startIndex;
-    this.boardRenderer.drawTrail([this.playerIndex]);
+    this.trailIndices = [this.playerIndex];
+    this.boardRenderer.drawTrail(this.trailIndices);
     this.boardRenderer.drawActor(this.playerIndex);
 
     this.timerStartMs = this.time.now;
@@ -112,6 +111,10 @@ export class GameScene extends Phaser.Scene {
 
     this.cursors = this.input.keyboard?.createCursorKeys();
     this.wasd = this.input.keyboard?.addKeys('W,A,S,D,P') as GameScene['wasd'];
+    this.input.keyboard?.on('keydown-ESC', this.handlePauseHotkey, this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.input.keyboard?.off('keydown-ESC', this.handlePauseHotkey, this);
+    });
   }
 
   private readDirection(): 0 | 1 | 2 | 3 | null {
@@ -131,6 +134,10 @@ export class GameScene extends Phaser.Scene {
     if (right) return 3;
 
     return this.consumeTouchDirection();
+  }
+
+  private handlePauseHotkey(): void {
+    this.openPause();
   }
 
   private handlePointerDown(pointer: Phaser.Input.Pointer): void {
@@ -170,13 +177,27 @@ export class GameScene extends Phaser.Scene {
   }
 
   private tryMove(direction: 0 | 1 | 2 | 3): void {
+    const canBypassCadence = this.lastMoveDirection !== null
+      && this.lastMoveDirection !== direction
+      && this.time.now - this.lastMoveAtMs >= this.directionSwitchBypassMs;
+
+    if (!canBypassCadence && this.time.now - this.lastMoveAtMs < this.moveCooldownMs) {
+      return;
+    }
+
     const nextIndex = this.maze.tiles[this.playerIndex].neighbors[direction];
     if (nextIndex === -1 || !this.maze.tiles[nextIndex].floor) {
       return;
     }
 
     this.playerIndex = nextIndex;
-    this.boardRenderer.drawTrail([this.playerIndex]);
+    this.lastMoveAtMs = this.time.now;
+    this.lastMoveDirection = direction;
+    this.trailIndices.push(this.playerIndex);
+    if (this.trailIndices.length > 28) {
+      this.trailIndices.shift();
+    }
+    this.boardRenderer.drawTrail(this.trailIndices);
     this.boardRenderer.drawActor(this.playerIndex);
     this.hud?.setGoalArrow(this.playerIndex);
 
@@ -195,6 +216,8 @@ export class GameScene extends Phaser.Scene {
     this.overlayKey = 'PauseScene';
     this.paused = true;
     this.timerPausedAtMs = this.time.now;
+    this.lastMoveDirection = null;
+    this.queuedTouchDirection = null;
     this.scene.launch('PauseScene');
   }
 
@@ -208,6 +231,7 @@ export class GameScene extends Phaser.Scene {
       this.timerStartMs += pausedDuration;
       this.paused = false;
       this.overlayKey = null;
+      this.lastMoveAtMs = this.time.now;
       this.scene.stop('PauseScene');
       return;
     }

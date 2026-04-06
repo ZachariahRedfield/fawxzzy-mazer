@@ -21,7 +21,10 @@ export class OverlayManager {
       this.hostScene.scene.stop(this.activeOverlay);
     }
 
-    this.hostScene.scene.launch(overlayKey, data);
+    const launchData = (data !== null && typeof data === 'object')
+      ? data
+      : (data === undefined ? undefined : { value: data });
+    this.hostScene.scene.launch(overlayKey, launchData);
     this.activeOverlay = overlayKey;
   }
 
