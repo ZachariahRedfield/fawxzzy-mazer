@@ -1,8 +1,10 @@
 import Phaser from 'phaser';
+import { createDemoWalkerState, stepDemoWalker } from '../domain/ai';
 import { generateMaze } from '../domain/maze/generator';
+import { createBoardLayout, BoardRenderer } from '../render/boardRenderer';
 import { palette } from '../render/palette';
-import { createMenuButton } from '../ui/menuButton';
 import { OverlayManager } from '../ui/overlayManager';
+import { createMenuButton } from '../ui/menuButton';
 
 const OVERLAY_EVENTS = {
   open: 'overlay-open',
@@ -22,23 +24,50 @@ export class MenuScene extends Phaser.Scene {
 
     this.drawStarfield(width, height);
 
-    const boardSize = Math.min(width, height) * (width < 900 ? 0.58 : 0.62);
-    const boardX = width / 2 - boardSize / 2;
-    const boardY = height / 2 - boardSize / 2;
+    const maze = generateMaze({
+      scale: 24,
+      seed: 1988,
+      checkPointModifier: 0.35,
+      shortcutCountModifier: 0.13
+    });
 
-    this.drawBoardShell(boardX, boardY, boardSize);
-    this.drawMazeDemo(boardX, boardY, boardSize);
+    const layout = createBoardLayout(this, maze, width < 900 ? 0.58 : 0.62);
+    const boardRenderer = new BoardRenderer(this, maze, layout);
+    boardRenderer.drawBoardChrome();
+    boardRenderer.drawBase();
+    boardRenderer.drawGoal();
 
     this.add
-      .text(width / 2, height / 2 - boardSize * 0.24, 'Mazer', {
+      .text(width / 2, height / 2 - layout.boardSize * 0.24, 'Mazer', {
         color: '#8cffa4',
         fontFamily: 'monospace',
-        fontSize: `${Math.round(boardSize * 0.2)}px`
+        fontSize: `${Math.round(layout.boardSize * 0.2)}px`
       })
       .setOrigin(0.5)
       .setAlpha(0.42);
 
-    const buttonY = Math.min(height - 64, boardY + boardSize + 58);
+    const demo = createDemoWalkerState(maze);
+    boardRenderer.drawTrail(demo.trailIndices);
+    boardRenderer.drawActor(demo.currentIndex);
+
+    this.time.addEvent({
+      delay: 70,
+      loop: true,
+      callback: () => {
+        const next = stepDemoWalker(maze, demo);
+        demo.currentIndex = next.currentIndex;
+        demo.trailIndices = next.trailIndices;
+        demo.alternatives = next.alternatives;
+        demo.visited = next.visited;
+        demo.loops = next.loops;
+        demo.reachedGoal = next.reachedGoal;
+
+        boardRenderer.drawTrail(demo.trailIndices);
+        boardRenderer.drawActor(demo.currentIndex);
+      }
+    });
+
+    const buttonY = Math.min(height - 64, layout.boardY + layout.boardSize + 58);
     const spacing = Math.min(220, width * 0.24);
 
     createMenuButton(this, {
@@ -90,56 +119,5 @@ export class MenuScene extends Phaser.Scene {
     vignette.fillStyle(palette.background.vignette, 0.24);
     vignette.fillRect(0, 0, width, height * 0.14);
     vignette.fillRect(0, height * 0.86, width, height * 0.14);
-  }
-
-  private drawBoardShell(x: number, y: number, size: number): void {
-    this.add.rectangle(x + size / 2, y + size / 2, size + 24, size + 24, palette.board.panel, 0.28).setStrokeStyle(2, palette.board.panelStroke, 0.92);
-    this.add.rectangle(x + size / 2, y + size / 2, size, size, palette.board.panel, 0.68).setStrokeStyle(1, palette.board.panelStroke, 0.65);
-  }
-
-  private drawMazeDemo(boardX: number, boardY: number, boardSize: number): void {
-    const maze = generateMaze({
-      scale: 24,
-      seed: 1988,
-      checkPointModifier: 0.35,
-      shortcutCountModifier: 0.13
-    });
-
-    const tileSize = boardSize / maze.scale;
-    const graphics = this.add.graphics();
-
-    maze.tiles.forEach((tile) => {
-      const color = tile.floor ? palette.board.floor : palette.board.wall;
-      graphics.fillStyle(color, tile.floor ? 0.82 : 0.95);
-      graphics.fillRect(boardX + tile.x * tileSize, boardY + tile.y * tileSize, tileSize, tileSize);
-    });
-
-    graphics.fillStyle(palette.board.goal, 1);
-    const goal = maze.tiles[maze.endIndex];
-    graphics.fillRect(boardX + goal.x * tileSize + tileSize * 0.23, boardY + goal.y * tileSize + tileSize * 0.23, tileSize * 0.54, tileSize * 0.54);
-
-    const trail = this.add.graphics();
-    let progress = 1;
-
-    this.time.addEvent({
-      delay: 70,
-      loop: true,
-      callback: () => {
-        progress = (progress + 1) % maze.pathIndices.length;
-        trail.clear();
-
-        const drawCount = Math.max(6, progress);
-        for (let i = 0; i < drawCount; i += 1) {
-          const tile = maze.tiles[maze.pathIndices[i]];
-          trail.fillStyle(palette.board.path, 0.95);
-          trail.fillRect(
-            boardX + tile.x * tileSize + tileSize * 0.16,
-            boardY + tile.y * tileSize + tileSize * 0.16,
-            tileSize * 0.68,
-            tileSize * 0.68
-          );
-        }
-      }
-    });
   }
 }
