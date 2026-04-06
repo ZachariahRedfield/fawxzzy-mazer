@@ -44,8 +44,15 @@ export class BoardRenderer {
 
   public drawBoardChrome(): void {
     const { boardX, boardY, boardSize } = this.layout;
-    this.scene.add.rectangle(boardX + boardSize / 2, boardY + boardSize / 2, boardSize + 20, boardSize + 20, palette.board.panel, 0.3).setStrokeStyle(2, palette.board.panelStroke, 0.9);
-    this.scene.add.rectangle(boardX + boardSize / 2, boardY + boardSize / 2, boardSize, boardSize, palette.board.panel, 0.66).setStrokeStyle(1, palette.board.panelStroke, 0.62);
+    this.scene
+      .add
+      .rectangle(boardX + boardSize / 2, boardY + boardSize / 2, boardSize + 22, boardSize + 22, 0x080c16, 0.74)
+      .setStrokeStyle(2, 0x2f4f73, 0.95);
+
+    this.scene
+      .add
+      .rectangle(boardX + boardSize / 2, boardY + boardSize / 2, boardSize, boardSize, palette.board.panel, 0.76)
+      .setStrokeStyle(1, 0x5f90bf, 0.66);
   }
 
   public drawBase(): void {
@@ -54,11 +61,26 @@ export class BoardRenderer {
     this.grid.clear();
 
     this.maze.tiles.forEach((tile) => {
-      const color = tile.floor ? palette.board.floor : palette.board.wall;
-      this.base.fillStyle(color, tile.floor ? 0.86 : 0.96);
-      this.base.fillRect(boardX + tile.x * tileSize, boardY + tile.y * tileSize, tileSize, tileSize);
-      this.grid.lineStyle(1, 0x000000, tile.floor ? 0.2 : 0.34);
-      this.grid.strokeRect(boardX + tile.x * tileSize, boardY + tile.y * tileSize, tileSize, tileSize);
+      const x = boardX + tile.x * tileSize;
+      const y = boardY + tile.y * tileSize;
+
+      if (tile.floor) {
+        this.base.fillStyle(0x1d3557, 0.96);
+        this.base.fillRect(x, y, tileSize, tileSize);
+
+        const floorInset = tileSize * 0.11;
+        this.base.fillStyle(0x2a4d78, 0.78);
+        this.base.fillRect(x + floorInset, y + floorInset, tileSize - floorInset * 2, tileSize - floorInset * 2);
+
+        this.grid.lineStyle(1, 0x95c8ff, 0.3);
+        this.grid.strokeRect(x + 0.5, y + 0.5, tileSize - 1, tileSize - 1);
+      } else {
+        this.base.fillStyle(0x08101d, 0.98);
+        this.base.fillRect(x, y, tileSize, tileSize);
+
+        this.grid.lineStyle(1, 0x060a12, 0.92);
+        this.grid.strokeRect(x + 0.5, y + 0.5, tileSize - 1, tileSize - 1);
+      }
     });
   }
 
@@ -66,35 +88,72 @@ export class BoardRenderer {
     const { boardX, boardY, tileSize } = this.layout;
     const goalTile = this.maze.tiles[this.maze.endIndex];
     this.goal.clear();
+
     const centerX = boardX + goalTile.x * tileSize + tileSize / 2;
     const centerY = boardY + goalTile.y * tileSize + tileSize / 2;
-    this.goal.lineStyle(Math.max(2, tileSize * 0.06), palette.board.goal, 1);
-    this.goal.strokeCircle(centerX, centerY, tileSize * 0.34);
-    this.goal.fillStyle(palette.board.goal, 0.92);
-    this.goal.fillCircle(centerX, centerY, tileSize * 0.12);
+
+    this.goal.fillStyle(0xff4358, 0.25);
+    this.goal.fillCircle(centerX, centerY, tileSize * 0.42);
+
+    this.goal.lineStyle(Math.max(2, tileSize * 0.08), palette.board.goal, 1);
+    this.goal.strokeCircle(centerX, centerY, tileSize * 0.32);
+
+    this.goal.fillStyle(0xff7a88, 1);
+    this.goal.fillCircle(centerX, centerY, tileSize * 0.16);
   }
 
   public drawTrail(indices: number[]): void {
     const { boardX, boardY, tileSize } = this.layout;
     this.trail.clear();
-    const startAlpha = 0.28;
-    const endAlpha = 0.88;
+
+    const centerOf = (index: number): Phaser.Math.Vector2 => {
+      const tile = this.maze.tiles[index];
+      return new Phaser.Math.Vector2(
+        boardX + tile.x * tileSize + tileSize / 2,
+        boardY + tile.y * tileSize + tileSize / 2
+      );
+    };
 
     for (let i = 0; i < indices.length; i += 1) {
       const index = indices[i];
       const tile = this.maze.tiles[index];
       const t = indices.length <= 1 ? 1 : i / (indices.length - 1);
-      const alpha = Phaser.Math.Linear(startAlpha, endAlpha, t);
-      this.trail.fillStyle(palette.board.path, alpha);
-      this.trail.fillRect(boardX + tile.x * tileSize + tileSize * 0.16, boardY + tile.y * tileSize + tileSize * 0.16, tileSize * 0.68, tileSize * 0.68);
+      const alpha = Phaser.Math.Linear(0.16, 0.84, t);
+      const cellInset = tileSize * 0.24;
+
+      this.trail.fillStyle(0x7fb8ff, alpha);
+      this.trail.fillRect(
+        boardX + tile.x * tileSize + cellInset,
+        boardY + tile.y * tileSize + cellInset,
+        tileSize - cellInset * 2,
+        tileSize - cellInset * 2
+      );
+
+      if (i === 0) {
+        continue;
+      }
+
+      const prev = centerOf(indices[i - 1]);
+      const curr = centerOf(indices[i]);
+      this.trail.lineStyle(Math.max(2, tileSize * 0.12), 0xa7d2ff, Phaser.Math.Linear(0.18, 0.66, t));
+      this.trail.lineBetween(prev.x, prev.y, curr.x, curr.y);
     }
   }
 
   public drawActor(index: number): void {
     const { boardX, boardY, tileSize } = this.layout;
     const tile = this.maze.tiles[index];
+    const centerX = boardX + tile.x * tileSize + (tileSize / 2);
+    const centerY = boardY + tile.y * tileSize + (tileSize / 2);
+
     this.actor.clear();
-    this.actor.fillStyle(0xffffff, 0.98);
-    this.actor.fillCircle(boardX + tile.x * tileSize + (tileSize / 2), boardY + tile.y * tileSize + (tileSize / 2), tileSize * 0.28);
+    this.actor.fillStyle(0x0c1326, 0.55);
+    this.actor.fillCircle(centerX, centerY + tileSize * 0.04, tileSize * 0.34);
+
+    this.actor.fillStyle(0xffffff, 1);
+    this.actor.fillCircle(centerX, centerY, tileSize * 0.26);
+
+    this.actor.lineStyle(Math.max(2, tileSize * 0.09), 0x3a7cff, 0.95);
+    this.actor.strokeCircle(centerX, centerY, tileSize * 0.27);
   }
 }
