@@ -26,9 +26,9 @@ export const createBoardLayout = (
     ? { boardScale: options }
     : options;
 
-  const boardScale = normalizedOptions.boardScale ?? 0.82;
-  const topReserve = normalizedOptions.topReserve ?? 64;
-  const sidePadding = normalizedOptions.sidePadding ?? 20;
+  const boardScale = normalizedOptions.boardScale ?? 0.86;
+  const topReserve = normalizedOptions.topReserve ?? 68;
+  const sidePadding = normalizedOptions.sidePadding ?? 24;
   const bottomPadding = normalizedOptions.bottomPadding ?? sidePadding;
 
   const { width, height } = scene.scale;
@@ -76,6 +76,18 @@ export class BoardRenderer {
         boardSize + legacyTuning.board.frame.shadowExpandPx,
         palette.board.shadow,
         legacyTuning.board.frame.shadowAlpha
+      )
+      .setOrigin(0.5);
+
+    this.scene
+      .add
+      .rectangle(
+        boardX + boardSize / 2,
+        boardY + boardSize / 2,
+        boardSize + legacyTuning.board.frame.outerExpandPx + 20,
+        boardSize + legacyTuning.board.frame.outerExpandPx + 20,
+        palette.board.topHighlight,
+        0.06
       )
       .setOrigin(0.5);
 
@@ -155,6 +167,9 @@ export class BoardRenderer {
     this.goal.fillStyle(palette.board.goal, legacyTuning.board.goalPulse.glowAlpha * pulse);
     this.goal.fillCircle(centerX, centerY, tileSize * legacyTuning.board.goalPulse.glowRadiusRatio);
 
+    this.goal.fillStyle(0xffffff, 0.18 * sparkPulse);
+    this.goal.fillCircle(centerX, centerY, tileSize * (legacyTuning.board.goalPulse.glowRadiusRatio * 0.42));
+
     this.goal.lineStyle(
       Math.max(2, tileSize * legacyTuning.board.goalPulse.ringWidthRatio),
       palette.board.goal,
@@ -216,6 +231,13 @@ export class BoardRenderer {
         Phaser.Math.Linear(legacyTuning.board.trail.minLineAlpha, legacyTuning.board.trail.maxLineAlpha, t)
       );
       this.trail.lineBetween(prev.x, prev.y, curr.x, curr.y);
+
+      this.trail.lineStyle(
+        Math.max(1, tileSize * (legacyTuning.board.trail.lineWidthRatio * 0.48)),
+        0xffffff,
+        Phaser.Math.Linear(0.08, 0.22, t)
+      );
+      this.trail.lineBetween(prev.x, prev.y, curr.x, curr.y);
     }
   }
 
@@ -234,6 +256,9 @@ export class BoardRenderer {
 
     this.actor.lineStyle(Math.max(2, tileSize * 0.09), palette.board.player, 0.95);
     this.actor.strokeCircle(centerX, centerY, tileSize * 0.27);
+
+    this.actor.lineStyle(Math.max(1, tileSize * 0.035), 0xffffff, 0.42);
+    this.actor.strokeCircle(centerX, centerY, tileSize * 0.17);
   }
 
   public startAmbientMotion(distancePx: number, durationMs: number): void {

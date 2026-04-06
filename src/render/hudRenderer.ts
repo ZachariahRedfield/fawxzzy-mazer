@@ -27,7 +27,7 @@ export const createHudRenderer = (scene: Phaser.Scene, maze: MazeBuildResult): H
       palette.hud.panel,
       legacyTuning.hud.panelAlpha
     )
-    .setStrokeStyle(1, palette.hud.panelStroke, 0.8)
+    .setStrokeStyle(1, palette.hud.panelStroke, 0.86)
     .setScrollFactor(0)
     .setDepth(995);
 
@@ -40,14 +40,14 @@ export const createHudRenderer = (scene: Phaser.Scene, maze: MazeBuildResult): H
       (scene.scale.width - legacyTuning.hud.lineInsetX) / 2,
       0,
       palette.hud.accent,
-      0.2
+      0.3
     )
     .setScrollFactor(0)
     .setDepth(996);
 
   const timerText = scene.add
     .text(legacyTuning.hud.timerOffsetX, legacyTuning.hud.timerOffsetY, '00:00', {
-      color: '#9fffb0',
+      color: '#a8ffb6',
       fontFamily: 'monospace',
       fontSize: `${legacyTuning.hud.timerFontPx}px`
     })
@@ -56,7 +56,7 @@ export const createHudRenderer = (scene: Phaser.Scene, maze: MazeBuildResult): H
 
   const arrowText = scene.add
     .text(scene.scale.width - legacyTuning.hud.arrowOffsetX, legacyTuning.hud.arrowOffsetY, 'Goal ▲', {
-      color: '#ff7480',
+      color: '#ff7d89',
       fontFamily: 'monospace',
       fontSize: `${legacyTuning.hud.arrowFontPx}px`
     })
@@ -70,7 +70,7 @@ export const createHudRenderer = (scene: Phaser.Scene, maze: MazeBuildResult): H
       legacyTuning.hud.hintY,
       isTouchPrimary ? 'Tap to pause • swipe to move' : 'Arrow Keys / WASD • P or Esc pause',
       {
-        color: '#cbd9f5',
+        color: '#cfdbf1',
         fontFamily: 'monospace',
         fontSize: `${legacyTuning.hud.hintFontPx}px`
       }

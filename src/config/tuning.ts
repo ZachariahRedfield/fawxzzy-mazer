@@ -12,24 +12,24 @@ export const legacyTuning = {
     },
     frame: {
       shadowOffsetY: 7,
-      shadowExpandPx: 24,
-      shadowAlpha: 0.32,
-      outerExpandPx: 18,
-      outerAlpha: 0.78,
+      shadowExpandPx: 28,
+      shadowAlpha: 0.36,
+      outerExpandPx: 20,
+      outerAlpha: 0.82,
       outerStrokeWidth: 2,
       innerStrokeWidth: 1,
       topHighlightInsetPx: 5,
       topHighlightHeightPx: 2,
-      topHighlightAlpha: 0.24
+      topHighlightAlpha: 0.28
     },
     tile: {
-      floorInsetRatio: 0.11,
-      floorOuterAlpha: 0.97,
-      floorInsetAlpha: 0.76,
-      floorSheenAlpha: 0.06,
+      floorInsetRatio: 0.09,
+      floorOuterAlpha: 0.98,
+      floorInsetAlpha: 0.79,
+      floorSheenAlpha: 0.08,
       wallAlpha: 0.98,
       wallGridAlpha: 0.9,
-      floorGridAlpha: 0.24
+      floorGridAlpha: 0.28
     },
     goalPulse: {
       basePulse: 0.84,
@@ -46,12 +46,12 @@ export const legacyTuning = {
       outerRingWidthRatio: 0.045
     },
     trail: {
-      minAlpha: 0.16,
-      maxAlpha: 0.66,
-      minLineAlpha: 0.2,
-      maxLineAlpha: 0.55,
-      insetRatio: 0.24,
-      lineWidthRatio: 0.1,
+      minAlpha: 0.22,
+      maxAlpha: 0.72,
+      minLineAlpha: 0.28,
+      maxLineAlpha: 0.66,
+      insetRatio: 0.2,
+      lineWidthRatio: 0.12,
       maxLength: 30
     }
   },
@@ -67,27 +67,27 @@ export const legacyTuning = {
   },
   menu: {
     layout: {
-      boardScaleNarrow: 0.74,
-      boardScaleWide: 0.79,
-      topReserveRatio: 0.1,
-      topReserveMinPx: 56,
-      bottomPaddingPx: 94
+      boardScaleNarrow: 0.77,
+      boardScaleWide: 0.85,
+      topReserveRatio: 0.088,
+      topReserveMinPx: 48,
+      bottomPaddingPx: 84
     },
     title: {
       text: 'Mazer',
-      fontScaleToBoard: 0.19,
-      yOffsetFromBoardTop: -20,
-      alpha: 0.5,
-      strokePx: 5,
-      shadowBlur: 7,
-      pulseMinAlpha: 0.42,
-      pulseMaxAlpha: 0.56,
-      pulseDurationMs: 2200
+      fontScaleToBoard: 0.168,
+      yOffsetFromBoardTop: -24,
+      alpha: 0.52,
+      strokePx: 4,
+      shadowBlur: 10,
+      pulseMinAlpha: 0.46,
+      pulseMaxAlpha: 0.62,
+      pulseDurationMs: 2600
     },
     subtitle: {
       text: 'Board-first maze runner',
-      yOffsetFromTitle: 34,
-      fontSizePx: 16
+      yOffsetFromTitle: 30,
+      fontSizePx: 15
     },
     buttons: {
       laneBottomOffset: 46,
@@ -105,20 +105,20 @@ export const legacyTuning = {
       introDelayStepMs: 50
     },
     starfield: {
-      cloudCount: 6,
-      cloudRadiusMin: 130,
-      cloudRadiusMax: 320,
-      cloudAlphaMin: 0.08,
-      cloudAlphaMax: 0.2,
-      starCount: 320,
-      starRadiusMin: 0.6,
-      starRadiusMax: 1.6,
-      starAlphaMin: 0.3,
-      starAlphaMax: 0.95,
-      starsDriftRangePx: 9,
-      starsDriftDurationMs: 12000,
-      vignetteAlpha: 0.22,
-      vignetteBandRatio: 0.14
+      cloudCount: 8,
+      cloudRadiusMin: 110,
+      cloudRadiusMax: 300,
+      cloudAlphaMin: 0.07,
+      cloudAlphaMax: 0.16,
+      starCount: 420,
+      starRadiusMin: 0.55,
+      starRadiusMax: 1.5,
+      starAlphaMin: 0.28,
+      starAlphaMax: 0.92,
+      starsDriftRangePx: 14,
+      starsDriftDurationMs: 14000,
+      vignetteAlpha: 0.26,
+      vignetteBandRatio: 0.16
     },
     // Legacy menu labels/order from Unreal bindings.
     labels: ['Start', 'Options', 'Exit'] as const
@@ -135,23 +135,23 @@ export const legacyTuning = {
     }
   },
   hud: {
-    panelY: 30,
-    panelHeight: 48,
-    panelInsetX: 20,
-    panelAlpha: 0.8,
-    timerOffsetX: 18,
-    timerOffsetY: 14,
-    arrowOffsetX: 18,
-    arrowOffsetY: 14,
-    hintY: 16,
-    lineY: 53,
-    lineInsetX: 44,
-    arrowPulseMinAlpha: 0.72,
-    arrowPulseMaxAlpha: 0.9,
-    arrowPulseDurationMs: 1200,
-    timerFontPx: 22,
-    arrowFontPx: 22,
-    hintFontPx: 12
+    panelY: 34,
+    panelHeight: 52,
+    panelInsetX: 34,
+    panelAlpha: 0.76,
+    timerOffsetX: 28,
+    timerOffsetY: 17,
+    arrowOffsetX: 28,
+    arrowOffsetY: 17,
+    hintY: 19,
+    lineY: 59,
+    lineInsetX: 74,
+    arrowPulseMinAlpha: 0.74,
+    arrowPulseMaxAlpha: 0.92,
+    arrowPulseDurationMs: 1400,
+    timerFontPx: 21,
+    arrowFontPx: 21,
+    hintFontPx: 11
   },
   overlays: {
     optionsLabels: ['Features', 'Game Modes', 'Back'] as const,
@@ -198,14 +198,14 @@ export const legacyTuning = {
       // Direct legacy defaults from `MazerGameInstance.h` originals.
       linearRgb: { r: 0.19099, g: 0.192708, b: 0.18769 }
     },
-    player: 0x3a7cff,
-    trail: 0x2da8ff,
-    goal: 0xff3f4a,
+    player: 0x5d8eff,
+    trail: 0x39c3ff,
+    goal: 0xff525e,
     floor: 0x8f8f8f,
     hud: {
-      panel: 0x050913,
-      panelStroke: 0x6a8bc4,
-      accent: 0x9ac3ff
+      panel: 0x050811,
+      panelStroke: 0x7390c4,
+      accent: 0xa6ceff
     }
   }
 } as const;

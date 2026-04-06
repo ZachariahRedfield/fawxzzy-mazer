@@ -37,7 +37,7 @@ export const palette = {
     accent: legacyTuning.colors.hud.accent
   },
   ui: {
-    title: 0x1fab3a,
+    title: 0x29b84c,
     text: 0xe9f0ff,
     textDim: 0xb5b8d8,
     buttonFill: 0x151625,

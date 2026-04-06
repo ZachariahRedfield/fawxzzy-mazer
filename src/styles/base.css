@@ -2,7 +2,7 @@
   color-scheme: dark;
   font-family: 'Courier New', Courier, monospace;
   --mazer-bg-a: #3b1b63;
-  --mazer-bg-b: #140a2a;
+  --mazer-bg-b: #1a0d34;
   --mazer-bg-c: #090511;
   --mazer-frame-stroke: #2f4f73;
   --mazer-frame-focus: #5f90bf;
@@ -22,7 +22,7 @@ body,
 body {
   margin: 0;
   background:
-    radial-gradient(circle at 50% 40%, var(--mazer-bg-a) 0, var(--mazer-bg-b) 46%, var(--mazer-bg-c) 100%)
+    radial-gradient(circle at 50% 38%, var(--mazer-bg-a) 0, var(--mazer-bg-b) 43%, var(--mazer-bg-c) 100%)
     fixed;
   color: #f8f8ff;
   overflow: hidden;
@@ -31,21 +31,21 @@ body {
 #app {
   display: grid;
   place-items: center;
-  padding: clamp(8px, 1.2vw, 14px);
+  padding: clamp(10px, 1.2vw, 20px);
 }
 
 canvas {
   display: block;
-  width: min(100vw - 24px, 1360px);
-  height: min(100vh - 24px, 900px);
+  width: min(100vw - 44px, 1440px);
+  height: min(100vh - 36px, 940px);
   margin: 0 auto;
   image-rendering: crisp-edges;
   border: 1px solid var(--mazer-frame-stroke);
   border-radius: 0;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.04) inset,
-    0 18px 30px rgba(0, 0, 0, 0.48),
-    0 0 22px rgba(77, 133, 255, 0.08);
+    0 18px 36px rgba(0, 0, 0, 0.5),
+    0 0 26px rgba(77, 133, 255, 0.1);
   touch-action: none;
   transition: box-shadow 200ms ease, border-color 200ms ease;
   animation: mazer-canvas-breathe 6.2s ease-in-out infinite;
@@ -56,8 +56,8 @@ canvas:focus-visible {
   border-color: var(--mazer-frame-focus);
   box-shadow:
     0 0 0 1px rgba(173, 212, 255, 0.18) inset,
-    0 20px 32px rgba(0, 0, 0, 0.54),
-    0 0 28px rgba(96, 176, 255, 0.18);
+    0 22px 38px rgba(0, 0, 0, 0.56),
+    0 0 30px rgba(96, 176, 255, 0.18);
 }
 
 @keyframes mazer-canvas-breathe {
@@ -65,14 +65,14 @@ canvas:focus-visible {
   100% {
     box-shadow:
       0 0 0 1px rgba(255, 255, 255, 0.04) inset,
-      0 18px 30px rgba(0, 0, 0, 0.48),
-      0 0 20px rgba(77, 133, 255, 0.07);
+      0 18px 34px rgba(0, 0, 0, 0.5),
+      0 0 22px rgba(77, 133, 255, 0.08);
   }
   50% {
     box-shadow:
       0 0 0 1px rgba(255, 255, 255, 0.05) inset,
-      0 20px 34px rgba(0, 0, 0, 0.52),
-      0 0 26px rgba(96, 176, 255, 0.12);
+      0 22px 40px rgba(0, 0, 0, 0.54),
+      0 0 30px rgba(96, 176, 255, 0.14);
   }
 }
 
