@@ -14,22 +14,39 @@ const formatTime = (elapsedMs: number): string => {
 };
 
 export const createHudRenderer = (scene: Phaser.Scene, maze: MazeBuildResult): HudHandle => {
+  const isTouchPrimary = window.matchMedia('(pointer: coarse)').matches;
+  scene.add
+    .rectangle(scene.scale.width / 2, 28, scene.scale.width - 20, 44, 0x0b1020, 0.75)
+    .setStrokeStyle(1, 0x5f53a0, 0.55)
+    .setScrollFactor(0)
+    .setDepth(995);
+
   const timerText = scene.add
-    .text(18, 18, '00:00', {
+    .text(20, 14, '00:00', {
       color: '#8cffa4',
       fontFamily: 'monospace',
-      fontSize: '24px'
+      fontSize: '26px'
     })
     .setScrollFactor(0)
     .setDepth(1000);
 
   const arrowText = scene.add
-    .text(scene.scale.width - 18, 18, 'Goal ▲', {
+    .text(scene.scale.width - 20, 14, 'Goal ▲', {
       color: '#ff4f5d',
       fontFamily: 'monospace',
-      fontSize: '20px'
+      fontSize: '24px'
     })
     .setOrigin(1, 0)
+    .setScrollFactor(0)
+    .setDepth(1000);
+
+  scene.add
+    .text(scene.scale.width / 2, 14, isTouchPrimary ? 'Tap to pause • swipe to move' : 'Arrows/WASD • P or Esc pauses', {
+      color: '#c7d5ff',
+      fontFamily: 'monospace',
+      fontSize: '16px'
+    })
+    .setOrigin(0.5, 0)
     .setScrollFactor(0)
     .setDepth(1000);
 
