@@ -3,6 +3,7 @@ import { createDemoWalkerState, stepDemoWalker } from '../domain/ai';
 import { generateMaze } from '../domain/maze/generator';
 import { createBoardLayout, BoardRenderer } from '../render/boardRenderer';
 import { palette } from '../render/palette';
+import { legacyTuning, resolveBoardScaleFromCamScale } from '../config/defaults';
 import { OverlayManager } from '../ui/overlayManager';
 import { createMenuButton } from '../ui/menuButton';
 
@@ -28,16 +29,17 @@ export class MenuScene extends Phaser.Scene {
     this.drawStarfield(width, height);
 
     const maze = generateMaze({
-      scale: 24,
+      scale: legacyTuning.board.scale,
       seed: 1988,
-      checkPointModifier: 0.35,
-      shortcutCountModifier: 0.13
+      checkPointModifier: legacyTuning.board.checkPointModifier,
+      shortcutCountModifier: legacyTuning.board.shortcutCountModifier.menu
     });
 
     const layout = createBoardLayout(this, maze, {
-      boardScale: width < 900 ? 0.68 : 0.72,
-      topReserve: Math.max(74, Math.round(height * 0.12)),
-      bottomPadding: 112
+      boardScale: (width < 900 ? legacyTuning.menu.layout.boardScaleNarrow : legacyTuning.menu.layout.boardScaleWide)
+        + (resolveBoardScaleFromCamScale(legacyTuning.camera.camScaleDefault) - legacyTuning.camera.normalizedBaseline),
+      topReserve: Math.max(legacyTuning.menu.layout.topReserveMinPx, Math.round(height * legacyTuning.menu.layout.topReserveRatio)),
+      bottomPadding: legacyTuning.menu.layout.bottomPaddingPx
     });
     const boardRenderer = new BoardRenderer(this, maze, layout);
     boardRenderer.drawBoardChrome();
@@ -50,20 +52,20 @@ export class MenuScene extends Phaser.Scene {
       .setBlendMode(Phaser.BlendModes.SCREEN);
 
     const title = this.add
-      .text(width / 2, layout.boardY - 28, 'MAZER', {
+      .text(width / 2, layout.boardY + legacyTuning.menu.title.yOffsetFromBoardTop, legacyTuning.menu.title.text, {
         color: '#22af3f',
         fontFamily: 'monospace',
-        fontSize: `${Math.round(layout.boardSize * 0.18)}px`,
+        fontSize: `${Math.round(layout.boardSize * legacyTuning.menu.title.fontScaleToBoard)}px`,
         fontStyle: 'bold'
       })
       .setOrigin(0.5)
-      .setAlpha(0.48)
+      .setAlpha(legacyTuning.menu.title.alpha)
       .setStroke('#0a561b', 6)
       .setShadow(0, 0, '#123f1d', 8, true, true)
       .setDepth(10);
 
     const subtitle = this.add
-      .text(width / 2, title.y + 34, 'Board-first maze runner', {
+      .text(width / 2, title.y + legacyTuning.menu.subtitle.yOffsetFromTitle, legacyTuning.menu.subtitle.text, {
         color: '#aeb6d9',
         fontFamily: 'monospace',
         fontSize: '16px'
@@ -85,7 +87,7 @@ export class MenuScene extends Phaser.Scene {
     boardRenderer.drawActor(demo.currentIndex);
 
     this.time.addEvent({
-      delay: 70,
+      delay: legacyTuning.demo.stepMs,
       loop: true,
       callback: () => {
         const next = stepDemoWalker(maze, demo);
@@ -102,21 +104,21 @@ export class MenuScene extends Phaser.Scene {
     });
 
     this.boardGoalPulse = this.time.addEvent({
-      delay: 120,
+      delay: legacyTuning.demo.goalPulseMs,
       loop: true,
       callback: () => {
         boardRenderer.drawGoal();
       }
     });
 
-    const buttonY = height - 48;
-    const spacing = 214;
+    const buttonY = height - legacyTuning.menu.buttons.laneBottomOffset;
+    const spacing = legacyTuning.menu.buttons.spacing;
 
     const playButton = createMenuButton(this, {
       x: width / 2,
       y: buttonY,
-      label: 'Play',
-      width: 196,
+      label: legacyTuning.menu.labels[0],
+      width: legacyTuning.menu.buttons.widths.center,
       onClick: () => {
         this.overlayManager.closeAll();
         this.cameras.main.fadeOut(120, 0, 0, 0);
@@ -127,16 +129,16 @@ export class MenuScene extends Phaser.Scene {
     const optionsButton = createMenuButton(this, {
       x: width / 2 + spacing,
       y: buttonY,
-      label: 'Options',
-      width: 204,
+      label: legacyTuning.menu.labels[1],
+      width: legacyTuning.menu.buttons.widths.right,
       onClick: () => this.events.emit(OVERLAY_EVENTS.open, 'OptionsScene')
     });
 
     const quitButton = createMenuButton(this, {
       x: width / 2 - spacing,
       y: buttonY,
-      label: 'Quit',
-      width: 164,
+      label: legacyTuning.menu.labels[2],
+      width: legacyTuning.menu.buttons.widths.left,
       onClick: () => {
         this.overlayManager.closeAll();
         this.game.destroy(true);
