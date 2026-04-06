@@ -201,6 +201,10 @@ export class MenuScene extends Phaser.Scene {
     this.events.on(OVERLAY_EVENTS.close, () => this.overlayManager.closeActive());
 
     this.input.keyboard?.on('keydown-ESC', () => {
+      if (!this.overlayManager.isOverlayActive()) {
+        return;
+      }
+
       playSfx('cancel');
       this.overlayManager.closeActive();
     });

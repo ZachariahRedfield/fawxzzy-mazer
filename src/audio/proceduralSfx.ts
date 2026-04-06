@@ -19,6 +19,10 @@ const DEFAULT_RELEASE = 0.08;
 class ProceduralSfx {
   private context: AudioContext | null = null;
   private master: GainNode | null = null;
+  private readonly limiter: Partial<Record<SfxEvent, number>> = {
+    move: 0,
+    blocked: 0
+  };
 
   public attach(scene: Phaser.Scene): void {
     if (typeof window === 'undefined' || !window.AudioContext) {
@@ -49,34 +53,51 @@ class ProceduralSfx {
     }
 
     const now = context.currentTime;
+    if (!this.canPlay(event, now)) {
+      return;
+    }
+
     switch (event) {
       case 'confirm':
-        this.tone({ frequency: 330, gain: 0.055, duration: 0.05, type: 'square', when: now });
-        this.tone({ frequency: 520, gain: 0.045, duration: 0.09, type: 'triangle', when: now + 0.03 });
+        this.tone({ frequency: 320, gain: 0.045, duration: 0.05, type: 'triangle', when: now, detune: -4 });
+        this.tone({ frequency: 486, gain: 0.038, duration: 0.1, type: 'sine', when: now + 0.03, release: 0.1 });
         break;
       case 'cancel':
-        this.tone({ frequency: 280, gain: 0.05, duration: 0.07, type: 'sawtooth', when: now });
-        this.tone({ frequency: 188, gain: 0.04, duration: 0.11, type: 'triangle', when: now + 0.015 });
+        this.tone({ frequency: 268, gain: 0.044, duration: 0.06, type: 'triangle', when: now, detune: -7 });
+        this.tone({ frequency: 176, gain: 0.035, duration: 0.11, type: 'sine', when: now + 0.015, release: 0.1 });
         break;
       case 'move':
-        this.tone({ frequency: 176, gain: 0.03, duration: 0.04, type: 'square', when: now, release: 0.05 });
+        this.tone({ frequency: 164, gain: 0.02, duration: 0.035, type: 'triangle', when: now, release: 0.05, detune: -5 });
         break;
       case 'blocked':
-        this.noiseBurst(now, 0.028, 0.06, 620);
-        this.tone({ frequency: 98, gain: 0.03, duration: 0.06, type: 'sawtooth', when: now, release: 0.06 });
+        this.noiseBurst(now, 0.018, 0.045, 740);
+        this.tone({ frequency: 104, gain: 0.022, duration: 0.055, type: 'triangle', when: now, release: 0.06, detune: -18 });
         break;
       case 'pause':
-        this.tone({ frequency: 246, gain: 0.05, duration: 0.08, type: 'triangle', when: now });
-        this.tone({ frequency: 184, gain: 0.045, duration: 0.1, type: 'triangle', when: now + 0.04 });
+        this.tone({ frequency: 224, gain: 0.04, duration: 0.09, type: 'sine', when: now, release: 0.12 });
+        this.tone({ frequency: 168, gain: 0.038, duration: 0.12, type: 'triangle', when: now + 0.045, release: 0.12 });
         break;
       case 'win':
-        this.tone({ frequency: 262, gain: 0.05, duration: 0.08, type: 'triangle', when: now });
-        this.tone({ frequency: 330, gain: 0.05, duration: 0.09, type: 'triangle', when: now + 0.06 });
-        this.tone({ frequency: 392, gain: 0.052, duration: 0.12, type: 'sine', when: now + 0.12, release: 0.16 });
+        this.tone({ frequency: 246, gain: 0.042, duration: 0.08, type: 'triangle', when: now, release: 0.11 });
+        this.tone({ frequency: 310, gain: 0.04, duration: 0.095, type: 'sine', when: now + 0.065, release: 0.13 });
+        this.tone({ frequency: 368, gain: 0.042, duration: 0.14, type: 'sine', when: now + 0.135, release: 0.18 });
         break;
       default:
         break;
     }
+  }
+
+  private canPlay(event: SfxEvent, now: number): boolean {
+    if (event === 'move' || event === 'blocked') {
+      const minGap = event === 'move' ? 0.045 : 0.08;
+      const lastPlayedAt = this.limiter[event] ?? 0;
+      if (now - lastPlayedAt < minGap) {
+        return false;
+      }
+      this.limiter[event] = now;
+    }
+
+    return true;
   }
 
   private ensureContext(): AudioContext | null {
@@ -87,7 +108,7 @@ class ProceduralSfx {
     if (!this.context) {
       this.context = new window.AudioContext();
       this.master = this.context.createGain();
-      this.master.gain.value = 0.7;
+      this.master.gain.value = 0.55;
       this.master.connect(this.context.destination);
     }
 

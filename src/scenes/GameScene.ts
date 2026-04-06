@@ -41,6 +41,7 @@ export class GameScene extends Phaser.Scene {
   private readonly touchControlsEnabled = window.matchMedia('(pointer: coarse)').matches;
   private hud?: ReturnType<typeof createHudRenderer>;
   private runSeed = 9001;
+  private readonly actionConfirmDelayMs = 70;
 
   public constructor() {
     super('GameScene');
@@ -279,25 +280,31 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (data.action === 'resume') {
-      const pausedDuration = this.time.now - this.timerPausedAtMs;
-      this.timerStartMs += pausedDuration;
-      this.paused = false;
-      this.overlayKey = null;
-      this.lastMoveAtMs = this.time.now - this.moveCooldownMs;
-      this.lastMoveDirection = null;
-      this.scene.stop('PauseScene');
+      this.time.delayedCall(this.actionConfirmDelayMs, () => {
+        const pausedDuration = this.time.now - this.timerPausedAtMs;
+        this.timerStartMs += pausedDuration;
+        this.paused = false;
+        this.overlayKey = null;
+        this.lastMoveAtMs = this.time.now - this.moveCooldownMs;
+        this.lastMoveDirection = null;
+        this.scene.stop('PauseScene');
+      });
       return;
     }
 
     if (data.action === 'menu') {
-      this.scene.stop('PauseScene');
-      this.scene.start('MenuScene');
+      this.time.delayedCall(this.actionConfirmDelayMs, () => {
+        this.scene.stop('PauseScene');
+        this.scene.start('MenuScene');
+      });
       return;
     }
 
     if (data.action === 'reset') {
-      this.scene.stop('PauseScene');
-      this.scene.restart();
+      this.time.delayedCall(this.actionConfirmDelayMs, () => {
+        this.scene.stop('PauseScene');
+        this.scene.restart();
+      });
       return;
     }
 
@@ -309,21 +316,27 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (data.action === 'reset-run') {
-      this.scene.stop('WinScene');
-      this.scene.restart();
+      this.time.delayedCall(this.actionConfirmDelayMs, () => {
+        this.scene.stop('WinScene');
+        this.scene.restart();
+      });
       return;
     }
 
     if (data.action === 'new-maze') {
-      this.runSeed += 1;
-      this.scene.stop('WinScene');
-      this.scene.restart();
+      this.time.delayedCall(this.actionConfirmDelayMs, () => {
+        this.runSeed += 1;
+        this.scene.stop('WinScene');
+        this.scene.restart();
+      });
       return;
     }
 
     if (data.action === 'menu') {
-      this.scene.stop('WinScene');
-      this.scene.start('MenuScene');
+      this.time.delayedCall(this.actionConfirmDelayMs, () => {
+        this.scene.stop('WinScene');
+        this.scene.start('MenuScene');
+      });
       return;
     }
 
