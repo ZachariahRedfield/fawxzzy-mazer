@@ -1,3 +1,14 @@
+import { legacyTuning } from '../config/defaults';
+
+const toByte = (value: number): number => Math.max(0, Math.min(255, Math.round(value * 255)));
+
+const linearRgbToHex = (rgb: { r: number; g: number; b: number }): number => {
+  const r = toByte(rgb.r);
+  const g = toByte(rgb.g);
+  const b = toByte(rgb.b);
+  return (r << 16) | (g << 8) | b;
+};
+
 export const palette = {
   background: {
     deepSpace: 0x140a2a,
@@ -8,10 +19,11 @@ export const palette = {
   board: {
     panel: 0x1f1b2c,
     panelStroke: 0x23212d,
-    wall: 0x1f1f1f,
+    wall: linearRgbToHex(legacyTuning.colors.wallLinearRgb),
     floor: 0x8f8f8f,
-    path: 0x39e8ff,
-    goal: 0xff3f4a
+    path: linearRgbToHex(legacyTuning.colors.pathLinearRgb),
+    goal: legacyTuning.colors.goalHexApprox,
+    player: legacyTuning.colors.playerHexApprox
   },
   ui: {
     title: 0x1fab3a,
