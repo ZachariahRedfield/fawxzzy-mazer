@@ -123,19 +123,22 @@ export class BoardRenderer {
 
     const centerX = boardX + goalTile.x * tileSize + tileSize / 2;
     const centerY = boardY + goalTile.y * tileSize + tileSize / 2;
-    const pulse = 0.85 + (Math.sin(this.scene.time.now * 0.005) * 0.15);
+    const time = this.scene.time.now * 0.0036;
+    const basePulse = 0.82 + (Math.sin(time) * 0.12);
+    const microPulse = Math.sin(time * 2.3) * 0.04;
+    const pulse = basePulse + microPulse;
 
-    this.goal.fillStyle(palette.board.goal, 0.21 * pulse);
-    this.goal.fillCircle(centerX, centerY, tileSize * 0.42);
+    this.goal.fillStyle(palette.board.goal, 0.19 * pulse);
+    this.goal.fillCircle(centerX, centerY, tileSize * 0.43);
 
-    this.goal.lineStyle(Math.max(2, tileSize * 0.08), palette.board.goal, 0.9 + ((pulse - 0.85) * 0.5));
-    this.goal.strokeCircle(centerX, centerY, tileSize * 0.32);
+    this.goal.lineStyle(Math.max(2, tileSize * 0.08), palette.board.goal, 0.84 + (microPulse * 0.8));
+    this.goal.strokeCircle(centerX, centerY, tileSize * (0.31 + (microPulse * 0.04)));
 
-    this.goal.lineStyle(Math.max(1, tileSize * 0.05), palette.board.goal, 0.38 * pulse);
-    this.goal.strokeCircle(centerX, centerY, tileSize * 0.46);
+    this.goal.lineStyle(Math.max(1, tileSize * 0.045), palette.board.goal, 0.31 * pulse);
+    this.goal.strokeCircle(centerX, centerY, tileSize * (0.47 + (microPulse * 0.03)));
 
-    this.goal.fillStyle(palette.board.goal, 1);
-    this.goal.fillCircle(centerX, centerY, tileSize * 0.16);
+    this.goal.fillStyle(palette.board.goal, 0.96);
+    this.goal.fillCircle(centerX, centerY, tileSize * (0.145 + (microPulse * 0.03)));
   }
 
   public drawTrail(indices: number[]): void {

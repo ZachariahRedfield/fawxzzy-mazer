@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { createOverlaySheet } from '../ui/overlaySheet';
 import { createMenuButton } from '../ui/menuButton';
+import { proceduralSfx } from '../audio';
 
 export class PauseScene extends Phaser.Scene {
   public constructor() {
@@ -15,21 +16,24 @@ export class PauseScene extends Phaser.Scene {
       x: width / 2,
       y: contentY,
       label: 'Resume',
-      onClick: () => this.emitAction('resume')
+      onClick: () => this.emitAction('resume'),
+      sound: 'confirm'
     });
 
     const resetButton = createMenuButton(this, {
       x: width / 2,
       y: contentY + 54,
       label: 'Reset Run',
-      onClick: () => this.emitAction('reset')
+      onClick: () => this.emitAction('reset'),
+      sound: 'confirm'
     });
 
     const menuButton = createMenuButton(this, {
       x: width / 2,
       y: contentY + 108,
       label: 'Main Menu',
-      onClick: () => this.emitAction('menu')
+      onClick: () => this.emitAction('menu'),
+      sound: 'cancel'
     });
 
     container.setAlpha(0);
@@ -39,7 +43,8 @@ export class PauseScene extends Phaser.Scene {
       alpha: 1,
       scaleX: 1,
       scaleY: 1,
-      duration: 170,
+      y: '-=4',
+      duration: 180,
       ease: 'Quad.easeOut'
     });
 
@@ -56,8 +61,14 @@ export class PauseScene extends Phaser.Scene {
       });
     });
 
-    this.input.keyboard?.once('keydown-P', () => this.emitAction('resume'));
-    this.input.keyboard?.once('keydown-ESC', () => this.emitAction('resume'));
+    this.input.keyboard?.once('keydown-P', () => {
+      proceduralSfx.play('menu-confirm');
+      this.emitAction('resume');
+    });
+    this.input.keyboard?.once('keydown-ESC', () => {
+      proceduralSfx.play('menu-confirm');
+      this.emitAction('resume');
+    });
   }
 
   private emitAction(action: 'resume' | 'menu' | 'reset'): void {

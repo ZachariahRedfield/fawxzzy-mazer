@@ -16,7 +16,7 @@ const formatTime = (elapsedMs: number): string => {
 export const createHudRenderer = (scene: Phaser.Scene, maze: MazeBuildResult): HudHandle => {
   const isTouchPrimary = window.matchMedia('(pointer: coarse)').matches;
 
-  scene.add
+  const hudBar = scene.add
     .rectangle(scene.scale.width / 2, 30, scene.scale.width - 20, 48, 0x050913, 0.8)
     .setStrokeStyle(1, 0x6a8bc4, 0.8)
     .setScrollFactor(0)
@@ -60,6 +60,16 @@ export const createHudRenderer = (scene: Phaser.Scene, maze: MazeBuildResult): H
     targets: arrowText,
     alpha: { from: 0.9, to: 0.72 },
     duration: 1200,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut'
+  });
+
+
+  scene.tweens.add({
+    targets: hudBar,
+    alpha: { from: 0.78, to: 0.86 },
+    duration: 1800,
     yoyo: true,
     repeat: -1,
     ease: 'Sine.easeInOut'

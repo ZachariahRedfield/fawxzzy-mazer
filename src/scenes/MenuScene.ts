@@ -6,6 +6,7 @@ import { palette } from '../render/palette';
 import { legacyTuning, resolveBoardScaleFromCamScale } from '../config/defaults';
 import { OverlayManager } from '../ui/overlayManager';
 import { createMenuButton } from '../ui/menuButton';
+import { proceduralSfx } from '../audio';
 
 const OVERLAY_EVENTS = {
   open: 'overlay-open',
@@ -24,8 +25,9 @@ export class MenuScene extends Phaser.Scene {
   public create(): void {
     const { width, height } = this.scale;
     this.overlayManager = new OverlayManager(this, ['OptionsScene', 'FeaturesScene', 'ModesScene']);
+    proceduralSfx.attachScene(this);
 
-    this.cameras.main.fadeIn(280, 0, 0, 0);
+    this.cameras.main.fadeIn(300, 0, 0, 0);
     this.drawStarfield(width, height);
 
     const maze = generateMaze({
@@ -121,9 +123,10 @@ export class MenuScene extends Phaser.Scene {
       width: legacyTuning.menu.buttons.widths.center,
       onClick: () => {
         this.overlayManager.closeAll();
-        this.cameras.main.fadeOut(120, 0, 0, 0);
-        this.time.delayedCall(120, () => this.scene.start('GameScene'));
-      }
+        this.cameras.main.fadeOut(150, 0, 0, 0);
+        this.time.delayedCall(150, () => this.scene.start('GameScene'));
+      },
+      sound: 'confirm'
     });
 
     const optionsButton = createMenuButton(this, {
@@ -131,7 +134,8 @@ export class MenuScene extends Phaser.Scene {
       y: buttonY,
       label: legacyTuning.menu.labels[1],
       width: legacyTuning.menu.buttons.widths.right,
-      onClick: () => this.events.emit(OVERLAY_EVENTS.open, 'OptionsScene')
+      onClick: () => this.events.emit(OVERLAY_EVENTS.open, 'OptionsScene'),
+      sound: 'confirm'
     });
 
     const quitButton = createMenuButton(this, {
@@ -142,7 +146,8 @@ export class MenuScene extends Phaser.Scene {
       onClick: () => {
         this.overlayManager.closeAll();
         this.game.destroy(true);
-      }
+      },
+      sound: 'cancel'
     });
 
     const buttons = [quitButton, playButton, optionsButton];
@@ -159,10 +164,16 @@ export class MenuScene extends Phaser.Scene {
       });
     });
 
-    this.events.on(OVERLAY_EVENTS.open, (key: string) => this.overlayManager.open(key));
-    this.events.on(OVERLAY_EVENTS.close, () => this.overlayManager.closeActive());
+    this.events.on(OVERLAY_EVENTS.open, (key: string) => {
+      this.overlayManager.open(key);
+    });
+    this.events.on(OVERLAY_EVENTS.close, () => {
+      proceduralSfx.play('back-cancel');
+      this.overlayManager.closeActive();
+    });
 
     this.input.keyboard?.on('keydown-ESC', () => {
+      proceduralSfx.play('back-cancel');
       this.overlayManager.closeActive();
     });
 
@@ -173,6 +184,15 @@ export class MenuScene extends Phaser.Scene {
     });
 
     subtitle.setDepth(11);
+
+    this.tweens.add({
+      targets: [title, subtitle],
+      y: '+=2',
+      duration: 2800,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
   }
 
   private drawStarfield(width: number, height: number): void {

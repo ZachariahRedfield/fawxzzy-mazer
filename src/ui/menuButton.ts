@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { palette } from '../render/palette';
+import { proceduralSfx } from '../audio';
 
 interface MenuButtonConfig {
   x: number;
@@ -7,6 +8,7 @@ interface MenuButtonConfig {
   label: string;
   width?: number;
   onClick: () => void;
+  sound?: 'confirm' | 'cancel';
 }
 
 export const createMenuButton = (scene: Phaser.Scene, config: MenuButtonConfig): Phaser.GameObjects.Container => {
@@ -33,14 +35,43 @@ export const createMenuButton = (scene: Phaser.Scene, config: MenuButtonConfig):
   hit.on('pointerover', () => {
     rect.setFillStyle(palette.ui.buttonHover, 0.9);
     text.setTint(palette.ui.title);
+    scene.tweens.killTweensOf(container);
+    scene.tweens.add({
+      targets: container,
+      scaleX: 1.015,
+      scaleY: 1.015,
+      duration: 80,
+      ease: 'Quad.easeOut'
+    });
   });
 
   hit.on('pointerout', () => {
     rect.setFillStyle(palette.ui.buttonFill, 0.84);
     text.clearTint();
+    scene.tweens.killTweensOf(container);
+    scene.tweens.add({
+      targets: container,
+      scaleX: 1,
+      scaleY: 1,
+      duration: 90,
+      ease: 'Quad.easeOut'
+    });
   });
 
-  hit.on('pointerdown', config.onClick);
+  hit.on('pointerdown', () => {
+    scene.tweens.killTweensOf(container);
+    container.setScale(0.985);
+    scene.tweens.add({
+      targets: container,
+      scaleX: 1,
+      scaleY: 1,
+      duration: 100,
+      ease: 'Quad.easeOut'
+    });
+
+    proceduralSfx.play(config.sound === 'cancel' ? 'back-cancel' : 'menu-confirm');
+    config.onClick();
+  });
 
   return container;
 };

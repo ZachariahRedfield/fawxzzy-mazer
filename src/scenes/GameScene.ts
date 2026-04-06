@@ -3,6 +3,7 @@ import { generateMaze, type MazeBuildResult } from '../domain/maze';
 import { BoardRenderer, createBoardLayout } from '../render/boardRenderer';
 import { createHudRenderer } from '../render/hudRenderer';
 import { legacyTuning, resolveBoardScaleFromCamScale } from '../config/defaults';
+import { proceduralSfx } from '../audio';
 
 interface PauseActionData {
   action: 'resume' | 'menu' | 'reset';
@@ -46,6 +47,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   public create(): void {
+    proceduralSfx.attachScene(this);
     this.bootstrapRun(this.runSeed);
 
     this.events.on('pause-action', this.handlePauseAction, this);
@@ -93,7 +95,7 @@ export class GameScene extends Phaser.Scene {
     this.bufferedDirection = null;
 
     const { width, height } = this.scale;
-    this.cameras.main.fadeIn(120, 0, 0, 0);
+    this.cameras.main.fadeIn(150, 0, 0, 0);
     this.cameras.main.setBackgroundColor('#0b1020');
     this.add.rectangle(width / 2, height / 2, width, height, 0x090f1d, 1).setDepth(-10);
 
@@ -229,10 +231,12 @@ export class GameScene extends Phaser.Scene {
     const nextIndex = this.maze.tiles[this.playerIndex].neighbors[direction];
     if (nextIndex === -1 || !this.maze.tiles[nextIndex].floor) {
       this.lastMoveDirection = direction;
+      proceduralSfx.play('blocked-move');
       return;
     }
 
     this.playerIndex = nextIndex;
+    proceduralSfx.play('move');
     this.lastMoveAtMs = this.time.now;
     this.lastMoveDirection = direction;
     this.trailIndices.push(this.playerIndex);
@@ -248,6 +252,8 @@ export class GameScene extends Phaser.Scene {
       this.paused = true;
       this.bufferedDirection = null;
       this.queuedTouchDirection = null;
+      proceduralSfx.play('win');
+      this.cameras.main.flash(140, 170, 255, 210, false);
       this.scene.launch('WinScene');
     }
   }
@@ -263,6 +269,7 @@ export class GameScene extends Phaser.Scene {
     this.lastMoveDirection = null;
     this.bufferedDirection = null;
     this.queuedTouchDirection = null;
+    proceduralSfx.play('pause');
     this.scene.launch('PauseScene');
   }
 
@@ -284,7 +291,8 @@ export class GameScene extends Phaser.Scene {
 
     if (data.action === 'menu') {
       this.scene.stop('PauseScene');
-      this.scene.start('MenuScene');
+      this.cameras.main.fadeOut(150, 0, 0, 0);
+      this.time.delayedCall(150, () => this.scene.start('MenuScene'));
       return;
     }
 
@@ -316,7 +324,8 @@ export class GameScene extends Phaser.Scene {
 
     if (data.action === 'menu') {
       this.scene.stop('WinScene');
-      this.scene.start('MenuScene');
+      this.cameras.main.fadeOut(150, 0, 0, 0);
+      this.time.delayedCall(150, () => this.scene.start('MenuScene'));
       return;
     }
 
