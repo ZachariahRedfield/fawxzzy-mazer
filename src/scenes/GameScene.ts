@@ -27,10 +27,11 @@ export class GameScene extends Phaser.Scene {
     d: Phaser.Input.Keyboard.Key;
     p: Phaser.Input.Keyboard.Key;
   };
-  private readonly moveCooldownMs = 90;
-  private readonly directionSwitchBypassMs = 28;
+  private readonly moveCooldownMs = 82;
+  private readonly directionSwitchBypassMs = 20;
   private lastMoveAtMs = 0;
   private lastMoveDirection: 0 | 1 | 2 | 3 | null = null;
+  private bufferedDirection: 0 | 1 | 2 | 3 | null = null;
   private trailIndices: number[] = [];
   private queuedTouchDirection: 0 | 1 | 2 | 3 | null = null;
   private pointerDownAt: Phaser.Math.Vector2 | null = null;
@@ -46,8 +47,13 @@ export class GameScene extends Phaser.Scene {
   public create(): void {
     this.bootstrapRun(this.runSeed);
 
-    this.events.on('pause-action', (data: PauseActionData) => this.handlePauseAction(data));
-    this.events.on('win-action', (data: WinActionData) => this.handleWinAction(data));
+    this.events.on('pause-action', this.handlePauseAction, this);
+    this.events.on('win-action', this.handleWinAction, this);
+
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.events.off('pause-action', this.handlePauseAction, this);
+      this.events.off('win-action', this.handleWinAction, this);
+    });
 
     if (this.touchControlsEnabled) {
       this.input.addPointer(1);
@@ -81,10 +87,13 @@ export class GameScene extends Phaser.Scene {
     this.overlayKey = null;
     this.paused = false;
     this.timerPausedAtMs = 0;
+    this.lastMoveDirection = null;
+    this.lastMoveAtMs = this.time.now - this.moveCooldownMs;
+    this.bufferedDirection = null;
 
     const { width, height } = this.scale;
-    this.cameras.main.setBackgroundColor('#0f1423');
-    this.add.rectangle(width / 2, height / 2, width, height, 0x101018, 1).setDepth(-10);
+    this.cameras.main.setBackgroundColor('#0b1020');
+    this.add.rectangle(width / 2, height / 2, width, height, 0x090f1d, 1).setDepth(-10);
 
     this.maze = generateMaze({
       scale: 24,
@@ -93,7 +102,7 @@ export class GameScene extends Phaser.Scene {
       shortcutCountModifier: 0.18
     });
 
-    const layout = createBoardLayout(this, this.maze, 0.8);
+    const layout = createBoardLayout(this, this.maze, 0.83);
     this.boardRenderer = new BoardRenderer(this, this.maze, layout);
     this.boardRenderer.drawBoardChrome();
     this.boardRenderer.drawBase();
@@ -118,20 +127,41 @@ export class GameScene extends Phaser.Scene {
   }
 
   private readDirection(): 0 | 1 | 2 | 3 | null {
-    const up = this.cursors?.up.isDown || this.wasd?.w.isDown;
-    const down = this.cursors?.down.isDown || this.wasd?.s.isDown;
-    const left = this.cursors?.left.isDown || this.wasd?.a.isDown;
-    const right = this.cursors?.right.isDown || this.wasd?.d.isDown;
-
     if (this.wasd?.p && Phaser.Input.Keyboard.JustDown(this.wasd.p)) {
       this.openPause();
       return null;
     }
 
-    if (up) return 0;
-    if (down) return 1;
-    if (left) return 2;
-    if (right) return 3;
+    const upPressed = this.cursors?.up.isDown || this.wasd?.w.isDown;
+    const downPressed = this.cursors?.down.isDown || this.wasd?.s.isDown;
+    const leftPressed = this.cursors?.left.isDown || this.wasd?.a.isDown;
+    const rightPressed = this.cursors?.right.isDown || this.wasd?.d.isDown;
+
+    const upTap = this.cursors?.up ? Phaser.Input.Keyboard.JustDown(this.cursors.up) : false;
+    const downTap = this.cursors?.down ? Phaser.Input.Keyboard.JustDown(this.cursors.down) : false;
+    const leftTap = this.cursors?.left ? Phaser.Input.Keyboard.JustDown(this.cursors.left) : false;
+    const rightTap = this.cursors?.right ? Phaser.Input.Keyboard.JustDown(this.cursors.right) : false;
+
+    const wTap = this.wasd?.w ? Phaser.Input.Keyboard.JustDown(this.wasd.w) : false;
+    const sTap = this.wasd?.s ? Phaser.Input.Keyboard.JustDown(this.wasd.s) : false;
+    const aTap = this.wasd?.a ? Phaser.Input.Keyboard.JustDown(this.wasd.a) : false;
+    const dTap = this.wasd?.d ? Phaser.Input.Keyboard.JustDown(this.wasd.d) : false;
+
+    if (upTap || wTap) this.bufferedDirection = 0;
+    else if (downTap || sTap) this.bufferedDirection = 1;
+    else if (leftTap || aTap) this.bufferedDirection = 2;
+    else if (rightTap || dTap) this.bufferedDirection = 3;
+
+    if (this.bufferedDirection !== null) {
+      const direction = this.bufferedDirection;
+      this.bufferedDirection = null;
+      return direction;
+    }
+
+    if (upPressed) return 0;
+    if (downPressed) return 1;
+    if (leftPressed) return 2;
+    if (rightPressed) return 3;
 
     return this.consumeTouchDirection();
   }
@@ -141,11 +171,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   private handlePointerDown(pointer: Phaser.Input.Pointer): void {
+    if (this.paused || this.overlayKey !== null) {
+      return;
+    }
+
     this.pointerDownAt = new Phaser.Math.Vector2(pointer.worldX, pointer.worldY);
   }
 
   private handlePointerUp(pointer: Phaser.Input.Pointer): void {
-    if (!this.pointerDownAt || this.overlayKey !== null) {
+    if (!this.pointerDownAt || this.overlayKey !== null || this.paused) {
       this.pointerDownAt = null;
       return;
     }
@@ -182,11 +216,13 @@ export class GameScene extends Phaser.Scene {
       && this.time.now - this.lastMoveAtMs >= this.directionSwitchBypassMs;
 
     if (!canBypassCadence && this.time.now - this.lastMoveAtMs < this.moveCooldownMs) {
+      this.bufferedDirection = direction;
       return;
     }
 
     const nextIndex = this.maze.tiles[this.playerIndex].neighbors[direction];
     if (nextIndex === -1 || !this.maze.tiles[nextIndex].floor) {
+      this.lastMoveDirection = direction;
       return;
     }
 
@@ -194,7 +230,7 @@ export class GameScene extends Phaser.Scene {
     this.lastMoveAtMs = this.time.now;
     this.lastMoveDirection = direction;
     this.trailIndices.push(this.playerIndex);
-    if (this.trailIndices.length > 28) {
+    if (this.trailIndices.length > 30) {
       this.trailIndices.shift();
     }
     this.boardRenderer.drawTrail(this.trailIndices);
@@ -204,6 +240,8 @@ export class GameScene extends Phaser.Scene {
     if (this.playerIndex === this.maze.endIndex) {
       this.overlayKey = 'WinScene';
       this.paused = true;
+      this.bufferedDirection = null;
+      this.queuedTouchDirection = null;
       this.scene.launch('WinScene');
     }
   }
@@ -217,6 +255,7 @@ export class GameScene extends Phaser.Scene {
     this.paused = true;
     this.timerPausedAtMs = this.time.now;
     this.lastMoveDirection = null;
+    this.bufferedDirection = null;
     this.queuedTouchDirection = null;
     this.scene.launch('PauseScene');
   }
@@ -231,7 +270,8 @@ export class GameScene extends Phaser.Scene {
       this.timerStartMs += pausedDuration;
       this.paused = false;
       this.overlayKey = null;
-      this.lastMoveAtMs = this.time.now;
+      this.lastMoveAtMs = this.time.now - this.moveCooldownMs;
+      this.lastMoveDirection = null;
       this.scene.stop('PauseScene');
       return;
     }

@@ -15,24 +15,25 @@ const formatTime = (elapsedMs: number): string => {
 
 export const createHudRenderer = (scene: Phaser.Scene, maze: MazeBuildResult): HudHandle => {
   const isTouchPrimary = window.matchMedia('(pointer: coarse)').matches;
+
   scene.add
-    .rectangle(scene.scale.width / 2, 28, scene.scale.width - 20, 44, 0x0b1020, 0.75)
-    .setStrokeStyle(1, 0x5f53a0, 0.55)
+    .rectangle(scene.scale.width / 2, 28, scene.scale.width - 20, 44, 0x050913, 0.84)
+    .setStrokeStyle(1, 0x6a8bc4, 0.8)
     .setScrollFactor(0)
     .setDepth(995);
 
   const timerText = scene.add
-    .text(20, 14, '00:00', {
-      color: '#8cffa4',
+    .text(18, 13, '00:00', {
+      color: '#9fffb0',
       fontFamily: 'monospace',
-      fontSize: '26px'
+      fontSize: '24px'
     })
     .setScrollFactor(0)
     .setDepth(1000);
 
   const arrowText = scene.add
-    .text(scene.scale.width - 20, 14, 'Goal ▲', {
-      color: '#ff4f5d',
+    .text(scene.scale.width - 18, 13, 'Goal ▲', {
+      color: '#ff6574',
       fontFamily: 'monospace',
       fontSize: '24px'
     })
@@ -40,15 +41,27 @@ export const createHudRenderer = (scene: Phaser.Scene, maze: MazeBuildResult): H
     .setScrollFactor(0)
     .setDepth(1000);
 
-  scene.add
-    .text(scene.scale.width / 2, 14, isTouchPrimary ? 'Tap to pause • swipe to move' : 'Arrows/WASD • P or Esc pauses', {
-      color: '#c7d5ff',
-      fontFamily: 'monospace',
-      fontSize: '16px'
-    })
-    .setOrigin(0.5, 0)
-    .setScrollFactor(0)
-    .setDepth(1000);
+  if (isTouchPrimary) {
+    scene.add
+      .text(scene.scale.width / 2, 15, 'Tap pause • swipe move', {
+        color: '#d8e6ff',
+        fontFamily: 'monospace',
+        fontSize: '14px'
+      })
+      .setOrigin(0.5, 0)
+      .setScrollFactor(0)
+      .setDepth(1000);
+  } else {
+    scene.add
+      .text(scene.scale.width / 2, 15, 'P / Esc pause', {
+        color: '#d8e6ff',
+        fontFamily: 'monospace',
+        fontSize: '14px'
+      })
+      .setOrigin(0.5, 0)
+      .setScrollFactor(0)
+      .setDepth(1000);
+  }
 
   return {
     setElapsedMs(elapsedMs: number): void {
