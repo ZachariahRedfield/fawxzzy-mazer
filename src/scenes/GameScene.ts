@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { generateMaze, type MazeBuildResult } from '../domain/maze';
 import { BoardRenderer, createBoardLayout } from '../render/boardRenderer';
 import { createHudRenderer } from '../render/hudRenderer';
+import { legacyTuning, resolveBoardScaleFromCamScale } from '../config/defaults';
 
 interface PauseActionData {
   action: 'resume' | 'menu' | 'reset';
@@ -97,16 +98,16 @@ export class GameScene extends Phaser.Scene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x090f1d, 1).setDepth(-10);
 
     this.maze = generateMaze({
-      scale: 24,
+      scale: legacyTuning.board.scale,
       seed,
-      checkPointModifier: 0.35,
-      shortcutCountModifier: 0.18
+      checkPointModifier: legacyTuning.board.checkPointModifier,
+      shortcutCountModifier: legacyTuning.board.shortcutCountModifier.game
     });
 
     const layout = createBoardLayout(this, this.maze, {
-      boardScale: 0.83,
-      topReserve: 64,
-      bottomPadding: 20
+      boardScale: resolveBoardScaleFromCamScale(legacyTuning.camera.camScaleDefault),
+      topReserve: legacyTuning.game.layout.topReservePx,
+      bottomPadding: legacyTuning.game.layout.bottomPaddingPx
     });
     this.boardRenderer = new BoardRenderer(this, this.maze, layout);
     this.boardRenderer.drawBoardChrome();

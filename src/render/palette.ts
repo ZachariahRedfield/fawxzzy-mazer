@@ -1,3 +1,5 @@
+import { legacyTuning, toHex } from '../config/defaults';
+
 export const palette = {
   background: {
     deepSpace: 0x140a2a,
@@ -8,10 +10,19 @@ export const palette = {
   board: {
     panel: 0x1f1b2c,
     panelStroke: 0x23212d,
-    wall: 0x1f1f1f,
-    floor: 0x8f8f8f,
-    path: 0x39e8ff,
-    goal: 0xff3f4a
+    wall: toHex(
+      legacyTuning.palette.wallLinearRgb.r,
+      legacyTuning.palette.wallLinearRgb.g,
+      legacyTuning.palette.wallLinearRgb.b
+    ),
+    floor: legacyTuning.palette.floorHex,
+    path: toHex(
+      legacyTuning.palette.pathLinearRgb.r,
+      legacyTuning.palette.pathLinearRgb.g,
+      legacyTuning.palette.pathLinearRgb.b
+    ),
+    goal: legacyTuning.palette.goalHex,
+    player: legacyTuning.palette.playerHex
   },
   ui: {
     title: 0x1fab3a,
